@@ -4,7 +4,6 @@ const currentMonth = new Date().getMonth();
 const currentYear = new Date().getFullYear();
 const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
-// Replace with your own Firebase configuration
 const firebaseConfig = {
     apiKey: "AIzaSyDSFoeEaMtWY5gxto43zycEqdV5z7LzfTw",
     authDomain: "coralie-6eca5.firebaseapp.com",
@@ -17,8 +16,8 @@ const firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 
-// Get a reference to the Firebase Realtime Database
-const database = firebase.database();
+// Get a reference to the Firebase Firestore
+const firestore = firebase.firestore();
 
 function createChoreRow(day, date, index) {
   const row = `
@@ -43,7 +42,7 @@ function fillChoreTable() {
 }
 
 function saveCheckboxState(checkbox) {
-  database.ref('checkboxState/' + checkbox.id).set(checkbox.checked);
+  firestore.collection('checkboxState').doc(checkbox.id).set({ checked: checkbox.checked });
 }
 
 function updateEarnings() {
@@ -69,14 +68,13 @@ function updateEarnings() {
 }
 
 function loadCheckboxState() {
-  database.ref('checkboxState/').once('value', (snapshot) => {
-    const checkboxState = snapshot.val() || {};
-    for (const checkboxId in checkboxState) {
-      const checkbox = document.getElementById(checkboxId);
+  firestore.collection('checkboxState').get().then((querySnapshot) => {
+    querySnapshot.forEach((doc) => {
+      const checkbox = document.getElementById(doc.id);
       if (checkbox) {
-        checkbox.checked = checkboxState[checkboxId];
+        checkbox.checked = doc.data().checked;
       }
-    }
+    });
     updateEarnings();
   });
 }
